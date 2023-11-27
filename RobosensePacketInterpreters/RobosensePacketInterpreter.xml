@@ -1,0 +1,37 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="internal_interpreter">
+    <SourceProxy name="RobosensePacketInterpreter"
+                 class="vtkRobosensePacketInterpreter"
+                 label="Robosense Packet Interpreter"
+                 base_proxygroup="internal_interpreter"
+                 base_proxyname="CommonLidarPacketInterpreter">
+
+      <IntVectorProperty name="LidarModel"
+                         command="SetLidarModel"
+                         number_of_elements="1"
+                         override="1"
+                         default_values="1">
+        <!-- Theses values are mapped to enum LidarType (driver_param.hpp) -->
+        <EnumerationDomain name="enum">
+          <Entry value="1" text="RS16" />
+          <Entry value="2" text="RS32" />
+          <Entry value="3" text="BPerl" />
+          <Entry value="5" text="Helios16" />
+          <Entry value="4" text="Helios32" />
+          <Entry value="8" text="Ruby48" />
+          <Entry value="7" text="Ruby80" />
+          <Entry value="6" text="Ruby128" />
+          <Entry value="11" text="RubyPlus48" />
+          <Entry value="10" text="RubyPlus80" />
+          <Entry value="9" text="RubyPlus128" />
+          <Entry value="32" text="M1" />
+          <Entry value="33" text="M2" />
+          <Entry value="34" text="E1" />
+        </EnumerationDomain>
+        <Documentation>
+          Process the data based on the chosen LiDAR model.
+        </Documentation>
+      </IntVectorProperty>
+    </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

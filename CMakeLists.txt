@@ -8,5 +8,7 @@ paraview_add_plugin(RobosensePlugin
   MODULE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/RobosensePacketInterpreters/vtk.module"
     "${CMAKE_CURRENT_SOURCE_DIR}/RobosenseSDK/vtk.module"
+  SERVER_MANAGER_XML
+    "${CMAKE_CURRENT_SOURCE_DIR}/RobosenseProxies.xml"
 )
 
