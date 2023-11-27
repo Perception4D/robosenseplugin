@@ -1,0 +1,7 @@
+NAME
+  RobosensePlugin::RobosenseSDK
+LIBRARY_NAME
+  RobosenseSDK
+DESCRIPTION
+  VTK wrapping of official Robosense SDK
+THIRD_PARTY
