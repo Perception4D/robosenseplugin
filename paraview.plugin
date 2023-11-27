@@ -1,0 +1,7 @@
+NAME
+  RobosensePlugin
+DESCRIPTION
+  A Robosense interpreter plugin
+REQUIRES_MODULES
+  VTK::CommonCore
+  LidarView::IOLidar
