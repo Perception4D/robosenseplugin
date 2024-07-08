@@ -15,6 +15,8 @@
 
 #include "vtkRobosenseLidarReader.h"
 
+#include <vtkObjectFactory.h>
+
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkRobosenseLidarReader)
 

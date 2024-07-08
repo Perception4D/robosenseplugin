@@ -48,6 +48,8 @@
           <PropertyGroup label="Robosense Specific">
             <Property name="LidarModel" />
           </PropertyGroup>
+          <Property name="Vendor" panel_visibility="never" />
+          <Property name="ModelName" panel_visibility="never" />
         </ExposedProperties>
       </SubProxy>
 
@@ -56,6 +58,7 @@
       </PropertyGroup>
 
       <Hints>
+        <LiveSource emulated_time="1" refresh_on_interaction="1" />
         <ReaderFactory extensions="pcap" file_description="Robosense LiDAR files" />
         <View type="None" port="1" />
         <PipelineIcon name="SpreadSheetView" port="1" />
