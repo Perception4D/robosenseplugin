@@ -1,0 +1,11 @@
+NAME
+  RobosensePlugin::RobosensePacketInterpreters
+LIBRARY_NAME
+  RobosensePacketInterpreters
+DEPENDS
+  LidarView::IOLidar
+  VTK::CommonCore
+PRIVATE_DEPENDS
+  RobosensePlugin::RobosenseSDK
+  VTK::CommonDataModel
+  VTK::CommonTransforms

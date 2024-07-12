@@ -1,0 +1,9 @@
+NAME
+  RobosensePlugin::RobosenseIO
+LIBRARY_NAME
+  RobosenseIO
+DEPENDS
+  LidarView::IOLidar
+  VTK::CommonCore
+PRIVATE_DEPENDS
+  RobosensePlugin::RobosensePacketInterpreters
