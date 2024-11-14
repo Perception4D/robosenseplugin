@@ -9,11 +9,11 @@
                             override="1"
                             default_values="RobosenseLidarReader"
                             information_only="1" />
-      <!-- <StringVectorProperty name="LidarStream"
+      <StringVectorProperty name="LidarStream"
                             number_of_elements="1"
                             override="1"
                             default_values="RobosenseLidarStream"
-                            information_only="1" /> -->
+                            information_only="1" />
     </Proxy>
   </ProxyGroup>
 </ServerManagerConfiguration>

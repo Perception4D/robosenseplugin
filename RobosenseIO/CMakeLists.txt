@@ -1,5 +1,6 @@
 set(rs_plugin_classes
   vtkRobosenseLidarReader
+  vtkRobosenseLidarStream
 )
 
 vtk_module_add_module(RobosensePlugin::RobosenseIO
