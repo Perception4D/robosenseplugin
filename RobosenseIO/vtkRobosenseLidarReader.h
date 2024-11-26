@@ -48,7 +48,7 @@ protected:
   /**
    * Open/Close the pcap file.
    */
-  virtual bool Open(bool reassemble = true) override;
+  bool Open() override;
   ///@}
 
 private:
