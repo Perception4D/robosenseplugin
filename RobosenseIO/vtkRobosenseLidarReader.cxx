@@ -27,7 +27,7 @@ vtkRobosenseLidarReader::vtkRobosenseLidarReader() = default;
 vtkRobosenseLidarReader::~vtkRobosenseLidarReader() = default;
 
 //-----------------------------------------------------------------------------
-bool vtkRobosenseLidarReader::Open(bool reassemble)
+bool vtkRobosenseLidarReader::Open()
 {
   std::vector<int> ports;
   if (this->GetLidarPort() != -1)
@@ -35,7 +35,7 @@ bool vtkRobosenseLidarReader::Open(bool reassemble)
     ports.emplace_back(this->GetLidarPort());
     ports.emplace_back(this->CalibrationPort);
   }
-  return Superclass::Open(ports, reassemble);
+  return Superclass::Open(ports);
 }
 
 //-----------------------------------------------------------------------------
