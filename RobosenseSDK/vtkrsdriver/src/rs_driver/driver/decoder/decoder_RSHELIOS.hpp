@@ -102,8 +102,8 @@ public:
   virtual ~DecoderRSHELIOS() = default;
 
   explicit DecoderRSHELIOS(const RSDecoderParam& param);
-
-#ifndef UNIT_TEST
+  virtual bool isNewFrame(const uint8_t* packet) override;
+#ifndef UNIT_TEST 
 protected:
 #endif
 
@@ -119,21 +119,22 @@ inline RSDecoderMechConstParam& DecoderRSHELIOS<T_PointCloud>::getConstParam()
 {
   static RSDecoderMechConstParam param = 
   {
-    1248 // msop len
+    {
+      1248 // msop len
       , 1248 // difop len
       , 4 // msop id len
       , 8 // difop id len
       , {0x55, 0xAA, 0x05, 0x5A} // msop id
-    , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
-    , {0xFF, 0xEE} // block id
-    , 32 // laser number
-    , 12 // blocks per packet
+      , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
+      , {0xFF, 0xEE} // block id
+      , 32 // laser number
+      , 12 // blocks per packet
       , 32 // channels per block
       , 0.1f // distance min
       , 180.0f // distance max
       , 0.0025f // distance resolution
       , 0.0625f // temperature resolution
-
+    }
       // lens center
       , 0.03498f // RX
       , -0.015f // RY
@@ -145,10 +146,10 @@ inline RSDecoderMechConstParam& DecoderRSHELIOS<T_PointCloud>::getConstParam()
   float blk_ts = 55.56f;
   float firing_tss[] = 
   {
-    0.00f,  1.57f,  3.15f,  4.72f,  6.30f,  7.87f,  9.45f, 11.36f, 
-    13.26f, 15.17f, 17.08f, 18.99f, 20.56f, 22.14f, 23.71f, 25.29f,
-    26.53f, 29.01f, 27.77f, 30.25f, 31.49f, 33.98f, 32.73f, 35.22f, 
-    36.46f, 37.70f, 38.94f, 40.18f, 41.42f, 42.67f, 43.91f, 45.15f
+    0.00f,  1.73f,  3.46f,  5.19f,  6.92f,  8.65f,  10.38f, 12.11f, 
+    13.84f, 15.57f, 17.3f, 19.03f, 20.76f, 22.49f, 24.22f, 25.95f,
+    27.68f, 29.41f, 31.14f, 32.87f, 34.6f, 36.33f, 38.06f, 39.79f,
+    41.52f, 43.25f, 44.98f, 46.71f, 48.44f, 50.17f, 51.9f, 53.63f
   };
 
   param.BLOCK_DURATION = blk_ts / 1000000;
@@ -214,7 +215,7 @@ inline bool DecoderRSHELIOS<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pa
   bool ret = false;
 
   this->temperature_ = parseTempInLe(&(pkt.header.temp)) * this->const_param_.TEMPERATURE_RES;
-
+  this->is_get_temperature_ = true;
   double pkt_ts = 0;
   if (this->param_.use_lidar_clock)
   {
@@ -307,6 +308,30 @@ inline bool DecoderRSHELIOS<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pa
 
   this->prev_pkt_ts_ = pkt_ts;
   return ret;
+}
+
+template <typename T_PointCloud>
+inline bool DecoderRSHELIOS<T_PointCloud>::isNewFrame(const uint8_t* packet)
+{
+  const RSHELIOSMsopPkt& pkt = *(const RSHELIOSMsopPkt*)(packet);
+ 
+  for (uint16_t blk = 0; blk < this->const_param_.BLOCKS_PER_PKT; blk++)
+  {
+    const RSHELIOSMsopBlock& block = pkt.blocks[blk];
+
+    if (memcmp(this->const_param_.BLOCK_ID, block.id, 2) != 0)
+    {
+      break;
+    }
+
+    int32_t block_az = ntohs(block.azimuth);
+    if (this->pre_split_strategy_->newBlock(block_az))
+    {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 }  // namespace lidar

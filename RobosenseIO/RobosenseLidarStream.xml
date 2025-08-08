@@ -1,7 +1,7 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="sources">
     <LidarStreamProxy name="RobosenseLidarStream"
-                      class="vtkLidarStream"
+                      class="vtkRobosenseLidarStream"
                       label="Robosense LiDAR Stream"
                       base_proxygroup="internal_interpreter"
                       base_proxyname="CommonLidarStream">
@@ -18,6 +18,15 @@
                          number_of_elements="1">
         <Documentation>
         Specify port on which to listen for packets
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="CalibrationPort"
+                         command="SetCalibrationPort"
+                         default_values="7788"
+                         number_of_elements="1">
+        <Documentation>
+          Specify which packets are read. To read all packets set the value to -1
         </Documentation>
       </IntVectorProperty>
 
@@ -44,6 +53,11 @@
           <Property name="ModelName" panel_visibility="never" />
         </ExposedProperties>
       </SubProxy>
+
+      <PropertyGroup label="Stream Options">
+        <Property name="CalibrationPort" />
+      </PropertyGroup>
+
       <Hints>
         <LiveSource refresh_on_interaction="1" />
         <View type="None" port="1" />

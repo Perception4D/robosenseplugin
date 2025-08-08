@@ -2,7 +2,7 @@
 
 This plugin wrap the [robosense driver](https://github.com/RoboSense-LiDAR/rs_driver) in a ParaView plugin. This allow LidarView to be able to read Robosense LiDARs.
 
-LiDARs supported: Old Robosense (RS16 and RS32), BPerl, Helios (16 and 32), Ruby (48, 80 and 128), Ruby Plus (48, 80 abd 128), M1, M2 and E1.
+LiDARs supported: Old Robosense (RS16 and RS32), Airy, BPerl, Helios (16 and 32), Ruby (48, 80 and 128), Ruby Plus (48, 80 abd 128), M1, M2, M3, and E1.
 
 # License
 

@@ -88,7 +88,7 @@ public:
   virtual ~DecoderRS128() = default;
 
   explicit DecoderRS128(const RSDecoderParam& param);
-
+  virtual bool isNewFrame(const uint8_t* packet) override;
 #ifndef UNIT_TEST
 protected:
 #endif
@@ -105,21 +105,22 @@ inline RSDecoderMechConstParam& DecoderRS128<T_PointCloud>::getConstParam()
 {
   static RSDecoderMechConstParam param = 
   {
-    1248 // msop len
+    {
+      1248 // msop len
       , 1248 // difop len
       , 4 // msop id len
       , 8 // difop id len
       , {0x55, 0xAA, 0x05, 0x5A} // msop id
-    , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
-    , {0xFE} // block id
-    , 128 // laser number
-    , 3 // blocks per packet
+      , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
+      , {0xFE} // block id
+      , 128 // laser number
+      , 3 // blocks per packet
       , 128 // channels per block
       , 0.4f // distance min
       , 250.0f // distance max
       , 0.005f // distance resolution
       , 0.0625f // temperature resolution
-
+    }
       // lens center
       , 0.03615f // RX
       , -0.017f // RY
@@ -212,7 +213,7 @@ inline bool DecoderRS128<T_PointCloud>::internDecodeMsopPkt(const uint8_t* packe
   bool ret = false;
 
   this->temperature_ = parseTempInBe(&(pkt.header.temp)) * this->const_param_.TEMPERATURE_RES;
-
+  this->is_get_temperature_ = true;
   double pkt_ts = 0;
   if (this->param_.use_lidar_clock)
   {
@@ -308,6 +309,29 @@ inline bool DecoderRS128<T_PointCloud>::internDecodeMsopPkt(const uint8_t* packe
 
   this->prev_pkt_ts_ = pkt_ts;
   return ret;
+}
+
+template <typename T_PointCloud>
+inline bool DecoderRS128<T_PointCloud>::isNewFrame(const uint8_t* packet)
+{
+  const RS128MsopPkt& pkt = *(const RS128MsopPkt*)(packet);
+
+  for (uint16_t blk = 0; blk < this->const_param_.BLOCKS_PER_PKT; blk++)
+  {
+    const RS128MsopBlock& block = pkt.blocks[blk];
+
+    if (memcmp(this->const_param_.BLOCK_ID, block.id, 1) != 0)
+    {
+      break;
+    }
+
+    int32_t block_az = ntohs(block.azimuth);
+    if (this->pre_split_strategy_->newBlock(block_az))
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace lidar

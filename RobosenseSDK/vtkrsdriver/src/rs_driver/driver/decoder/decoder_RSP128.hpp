@@ -88,7 +88,7 @@ public:
   virtual ~DecoderRSP128() = default;
 
   explicit DecoderRSP128(const RSDecoderParam& param);
-
+  virtual bool isNewFrame(const uint8_t* packet) override;
 #ifndef UNIT_TEST
 protected:
 #endif
@@ -105,21 +105,22 @@ inline RSDecoderMechConstParam& DecoderRSP128<T_PointCloud>::getConstParam()
 {
   static RSDecoderMechConstParam param = 
   {
-    1248 // msop len
+    {
+      1248 // msop len
       , 1248 // difop len
       , 4 // msop id len
       , 8 // difop id len
       , {0x55, 0xAA, 0x05, 0x5A} // msop id
-    , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
-    , {0xFE} // block id
-    , 128 // laser number
-    , 3 // blocks per packet
+      , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
+      , {0xFE} // block id
+      , 128 // laser number
+      , 3 // blocks per packet
       , 128 // channels per block
       , 0.4f // distance min
       , 250.0f // distance max
       , 0.005f // distance resolution
       , 0.0625f // temperature resolution
-
+    }
       // lens center
       , 0.02892f // RX
       , -0.013f // RY
@@ -131,25 +132,25 @@ inline RSDecoderMechConstParam& DecoderRSP128<T_PointCloud>::getConstParam()
   float blk_ts = 55.56f;
   float firing_tss[] = 
   {
-    0.0f,    0.0f,    0.0f,    0.0f,    1.217f,  1.217f,  1.217f,  1.217f, 
-    2.434f,  2.434f,  2.434f,  2.434f,  3.652f,  3.652f,  3.652f,  3.652f,
-    4.869f,  4.869f,  4.869f,  4.869f,  6.086f,  6.086f,  6.086f,  6.086f, 
-    7.304f,  7.304f,  7.304f,  7.304f,  8.521f,  8.521f,  8.521f,  8.521f,
+    0.0f,    0.0f,    0.0f,    0.0f,    1.13f,   1.13f,   1.13f,   1.13f,
+    2.13f,   2.13f,   2.13f,   2.13f,   3.26,    3.26f,   3.26f,   3.26f,
+    4.26f,   4.26f,   4.26f,   4.26f,   5.38f,   5.38f,   5.38f,   5.38f,
+    6.38f,   6.38f,   6.38f,   6.38f,   7.51f,   7.51f,   7.51f,   7.51f,
 
-    9.739f,  9.739f,  9.739f,  9.739f, 11.323f, 11.323f, 11.323f, 11.323f,
-    12.907f, 12.907f, 12.907f, 12.907f, 14.924f, 14.924f, 14.924f, 14.924f, 
-    16.941f, 16.941f, 16.941f, 16.941f, 18.959f, 18.959f, 18.959f, 18.959f, 
-    20.976f, 20.976f, 20.976f, 20.976f, 23.127f, 23.127f, 23.127f, 23.127f, 
+    8.51f,   8.51f,   8.51f,   8.51f,   10.01f,  10.01f,  10.01f,  10.01f,
+    11.38f,  11.38f,  11.38f,  11.38f,  13.31f,  13.31f,  13.31f,  13.31f,
+    15.11f,  15.11f,  15.11f,  15.11f,  17.04f,  17.04f,  17.04f,  17.04f,
+    18.85f,  18.85f,  18.85f,  18.85f,  21.14f,  21.14f,  21.14f,  21.14f,
 
-    25.278f, 25.278f, 25.278f, 25.278f, 27.428f, 27.428f, 27.428f, 27.428f, 
-    29.579f, 29.579f, 29.579f, 29.579f, 31.963f, 31.963f, 31.963f, 31.963f, 
-    34.347f, 34.347f, 34.347f, 34.347f, 36.498f, 36.498f, 36.498f, 36.498f, 
-    38.648f, 38.648f, 38.648f, 38.648f, 40.666f, 40.666f, 40.666f, 40.666f, 
+    21.14f,  23.31f,  23.31f,  23.31f,  23.31f,  25.61f,  25.61f,  25.61f,
+    25.61f,  27.78f,  27.78f,  27.78f,  27.78f,  30.07f,  30.07f,  30.07f,
+    30.07f,  32.24f,  32.24f,  32.24f,  32.24f,  34.54f,  34.54f,  34.54f,
+    34.54f,  36.7f,   36.7f,   36.7f,   36.7f,   38.64f,   38.64f,  38.64f,
 
-    42.683f, 42.683f, 42.683f, 42.683f, 44.267f, 44.267f, 44.267f, 44.267f, 
-    45.851f, 45.851f, 45.851f, 45.851f, 47.435f, 47.435f, 47.435f, 47.435f, 
-    49.019f, 49.019f, 49.019f, 49.019f, 50.603f, 50.603f, 50.603f, 50.603f, 
-    52.187f, 52.187f, 52.187f, 52.187f, 53.771f, 53.771f, 53.771f, 53.771f,
+    38.64f,  40.44f,  40.44f,  40.44f,  40.44f,  41.94f,   41.94f,  41.94f,
+    41.94f,  43.3f,   43.3f,   43.3f,   43.3f,   44.8f,    44.8f,   44.8f,
+    44.8f,   46.17f,  46.17f,  46.17f,  46.17f,  47.66f,   47.66f,  47.66f,
+    47.66f,  49.03f,  49.03f,  49.03f,  49.03f,  50.53f,   50.53f,  53.771f
   };
 
   param.BLOCK_DURATION = blk_ts / 1000000;
@@ -217,7 +218,7 @@ inline bool DecoderRSP128<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pack
   bool ret = false;
 
   this->temperature_ = parseTempInBe(&(pkt.header.temp)) * this->const_param_.TEMPERATURE_RES;
-
+  this->is_get_temperature_ = true;
   double pkt_ts = 0;
   if (this->param_.use_lidar_clock)
   {
@@ -311,6 +312,27 @@ inline bool DecoderRSP128<T_PointCloud>::internDecodeMsopPkt(const uint8_t* pack
   this->prev_pkt_ts_ = pkt_ts;
   return ret;
 }
+template <typename T_PointCloud>
+inline bool DecoderRSP128<T_PointCloud>::isNewFrame(const uint8_t* packet)
+{
+  const RSP128MsopPkt& pkt = *(const RSP128MsopPkt*)(packet);
+  for (uint16_t blk = 0; blk < this->const_param_.BLOCKS_PER_PKT; blk++)
+  {
+    const RSP128MsopBlock& block = pkt.blocks[blk];
 
+    if (memcmp(this->const_param_.BLOCK_ID, block.id, 1) != 0)
+    {
+      break;
+    }
+
+    int32_t block_az = ntohs(block.azimuth);
+    if (this->pre_split_strategy_->newBlock(block_az))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
 }  // namespace lidar
 }  // namespace robosense

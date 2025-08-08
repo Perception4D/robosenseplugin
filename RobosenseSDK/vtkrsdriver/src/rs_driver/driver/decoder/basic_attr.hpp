@@ -71,6 +71,12 @@ typedef struct
   uint8_t tt[2];
 } RSTemperature;
 
+#include "time.h"
+
+#if defined(_WIN32)
+#define timegm _mkgmtime
+#endif
+
 #pragma pack(pop)
 
 #ifdef ENABLE_STAMP_WITH_LOCAL
@@ -119,7 +125,30 @@ inline uint64_t parseTimeUTCWithUs(const RSTimestampUTC* tsUtc)
 
   return (sec * 1000000 + us);
 }
+inline uint64_t parseTimeUTCWithNs(const RSTimestampUTC* tsUtc)
+{
+  // sec
+  uint64_t sec = 0;
+  for (int i = 0; i < 6; i++)
+  {
+    sec <<= 8;
+    sec += tsUtc->sec[i];
+  }
+  
+  // ns
+  uint64_t ns = 0;
+  for (int i = 0; i < 4; i++)
+  {
+    ns <<= 8;
+    ns += tsUtc->ss[i]; 
+  }
+ 
+#ifdef ENABLE_STAMP_WITH_LOCAL
+  sec -= getTimezone();
+#endif
 
+  return (sec * 1000000000 + ns);
+}
 inline void createTimeUTCWithUs(uint64_t us, RSTimestampUTC* tsUtc)
 {
   uint64_t sec  = us / 1000000;
@@ -141,6 +170,27 @@ inline void createTimeUTCWithUs(uint64_t us, RSTimestampUTC* tsUtc)
     usec >>= 8;
   }
 }
+inline void createTimeUTCWithNs(uint64_t ns, RSTimestampUTC* tsUtc)
+{
+  uint64_t sec  = ns / 1000000000;
+  uint64_t nanoSec = ns % 1000000000;
+
+#ifdef ENABLE_STAMP_WITH_LOCAL
+  sec += getTimezone();
+#endif
+
+  for (int i = 5; i >= 0; i--)
+  {
+    tsUtc->sec[i] = sec & 0xFF;
+    sec >>= 8;
+  }
+
+  for (int i = 3; i >= 0; i--)
+  {
+    tsUtc->ss[i] = nanoSec & 0xFF;
+    nanoSec >>= 8;
+  }
+}
 
 inline uint64_t parseTimeYMD(const RSTimestampYMD* tsYmd)
 {
@@ -156,7 +206,7 @@ inline uint64_t parseTimeYMD(const RSTimestampYMD* tsYmd)
   stm.tm_hour = tsYmd->hour;
   stm.tm_min = tsYmd->minute;
   stm.tm_sec = tsYmd->second;
-  time_t sec = std::mktime(&stm);
+  time_t sec = timegm(&stm);
 
   uint64_t ms = ntohs(tsYmd->ms);
   uint64_t us = ntohs(tsYmd->us);
@@ -232,6 +282,15 @@ inline uint64_t getTimeHost(void)
   return t_us.count();
 }
 
+inline uint64_t getTimeHostWithNs(void)
+{
+  std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+  std::chrono::system_clock::duration t_s = t.time_since_epoch();
+
+  std::chrono::duration<uint64_t, std::nano> t_ns = 
+    std::chrono::duration_cast<std::chrono::duration<uint64_t, std::nano>>(t_s);
+  return t_ns.count();
+}
 inline int16_t parseTempInLe(const RSTemperature* tmp) // format of little endian
 {
   // | lsb | padding | neg | msb |

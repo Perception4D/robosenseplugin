@@ -99,15 +99,15 @@ inline RSDecoderConstParam& DecoderRSM1_Jumbo<T_PointCloud>::getConstParam()
 {
   static RSDecoderConstParam param = 
   {
-    62152 // msop len
+      62152 // msop len
       , 256 // difop len
       , 4 // msop id len
       , 8 // difop id len
       , {0x55, 0xAA, 0x5A, 0xA5} // msop id
-    , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
-    , {0x00, 0x00}
-    , 5  // laser number
-    , 25 // blocks per packet
+      , {0xA5, 0xFF, 0x00, 0x5A, 0x11, 0x11, 0x55, 0x55} // difop id
+      , {0x00, 0x00}
+      , 5  // laser number
+      , 25 // blocks per packet
       , 5 // channels per block
       , 0.2f // distance min
       , 200.0f // distance max
@@ -178,7 +178,7 @@ inline bool DecoderRSM1_Jumbo<T_PointCloud>::internDecodeMsopPkt(const uint8_t* 
     return false;
 
   this->temperature_ = static_cast<float>((int)pkt.header.temperature - this->const_param_.TEMPERATURE_RES);
-
+  this->is_get_temperature_ = true;
   double pkt_ts = 0;
   if (this->param_.use_lidar_clock)
   {

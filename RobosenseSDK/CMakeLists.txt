@@ -5,7 +5,7 @@ vtk_module_third_party_internal(
   LICENSE_FILES
     "vtkrsdriver/LICENSE"
   VERSION
-    "1.5.9"
+    "1.5.18"
   STANDARD_INCLUDE_DIRS
 )
 
