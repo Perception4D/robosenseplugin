@@ -18,9 +18,12 @@
 
 #include <vtk_rs_driver.h>
 
+#include <vtkBase64InputStream.h>
 #include <vtkDoubleArray.h>
+#include <vtkNew.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
+#include <vtk_jsoncpp.h>
 
 #include <cstring>
 
@@ -251,6 +254,48 @@ void vtkRobosensePacketInterpreter::Initialize()
     std::bind(&vtkRobosensePacketInterpreter::vtkInternals::RunExceptionCallback, internals.get(), std::placeholders::_1),
     std::bind(&vtkRobosensePacketInterpreter::SplitFrame, this, std::placeholders::_1, std::placeholders::_2));
   // clang-format on
+
+  std::string filename(this->CalibrationFileName ? this->CalibrationFileName : "");
+
+  if (!filename.empty())
+  {
+    std::cout << "Loading Robosense calibration file: " << filename << "..." << std::endl;
+
+    // Read the json file and decode Difop packet encoded into payload_base64 field
+    // Note: calibration file is needed for some PCAP that do not contain any Difop packets.
+    std::ifstream fileStream(filename);
+    if (fileStream)
+    {
+      Json::Value jsonData;
+      fileStream >> jsonData;
+      if (jsonData.isMember("payload_base64"))
+      {
+        std::string payloadBase64 = jsonData["payload_base64"].asString();
+
+        std::istringstream base64Stream(payloadBase64);
+        vtkNew<vtkBase64InputStream> base64Decoder;
+        base64Decoder->SetStream(&base64Stream);
+
+        std::string decodedPayload;
+        char buffer[1024];
+        size_t bytesRead = 0;
+        while ((bytesRead = base64Decoder->Read(buffer, sizeof(buffer))) > 0)
+        {
+          decodedPayload.append(buffer, bytesRead);
+        }
+
+        std::cout << "Decoded calibration payload size: " << decodedPayload.size() << " bytes." << std::endl;
+        std::vector<uint8_t> difopPacketVec(decodedPayload.begin(), decodedPayload.end());
+        internals->GetDecoder()->processDifopPkt(difopPacketVec.data(), difopPacketVec.size());
+      }
+      else
+      {
+        vtkErrorMacro("Calibration file does not contain 'payload_base64' field!");
+      }
+    }
+  }
+
+  Superclass::Initialize();
 }
 
 //-----------------------------------------------------------------------------

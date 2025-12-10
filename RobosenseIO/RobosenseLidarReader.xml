@@ -35,6 +35,7 @@
                proxyname="RobosensePacketInterpreter" />
         <ExposedProperties>
           <PropertyGroup label="LiDAR Interpreter Options">
+            <Property name="CalibrationFileName" />
             <Property name="TimeOffset" />
             <Property name="IgnoreZeroDistances" panel_visibility="advanced" />
             <Property name="IgnoreEmptyFrames" panel_visibility="advanced" />
