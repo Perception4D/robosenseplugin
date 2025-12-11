@@ -1,27 +1,29 @@
 #!/bin/bash
 
-# Usage: ./extract_first_udp_7788_payload_tcpdump.sh input.pcap output.json
+# Usage: ./extract_calibration.sh input.pcap output.json
 
 if [ $# -ne 2 ]; then
-    echo "Usage: $0 input.pcap output.json"
+    echo "Calibration packet extraction from Robosense PCAP file"
+    echo "Usage: $0 input.pcap output-calibration.json"
     exit 1
 fi
 
 PCAP="$1"
 OUT="$2"
 
-# Vérifier tcpdump est installé
+# Check tcpdump is installed
 if ! command -v tcpdump >/dev/null 2>&1; then
-    echo "Erreur: tcpdump n'est pas installé."
+    echo "Error: tcpdump is not installed."
+    echo "Please install tcpdump to use this script: $ sudo apt-get install tcpdump"
     exit 1
 fi
 
 ###############################################
-# 1) Extraire le premier paquet brut en hex
+# 1) Extract the first raw packet in hex
 ###############################################
 
-# -xx affiche les données en hex
-# -s 0 capture tout le paquet
+# -xx prints data in hex
+# -s 0 captures the full packet
 TCPDUMP_OUTPUT=$(mktemp)
 trap 'rm -f "$BIN_TEMP" "$TCPDUMP_OUTPUT"' EXIT
 
@@ -34,33 +36,33 @@ HEX_RAW=$(awk '
 ' "$TCPDUMP_OUTPUT")
 
 if [ -z "$HEX_RAW" ]; then
-    echo "Aucun paquet trouvé avec udp dst port 7788 dans $PCAP"
+    echo "No packet found with UDP destination port 7788 in $PCAP"
     exit 2
 fi
 
 if [ $TCPDUMP_STATUS -ne 0 ]; then
-    echo "Avertissement: tcpdump a retourné $TCPDUMP_STATUS (pcap possiblement tronqué)."
+    echo "Warning: tcpdump returned $TCPDUMP_STATUS (pcap may be truncated)."
 fi
 
-printf "Hex raw extrait:\\n%s\\n" "$HEX_RAW"
+printf "Extracted raw hex:\\n%s\\n" "$HEX_RAW"
 
 ###############################################
-# 2) Nettoyer : garder seulement les octets hex
+# 2) Clean: keep only hex bytes
 ###############################################
 
-# Exemple d'entrée tcpdump :
+# tcpdump example input:
 #   0x0000:  45 00 00 3c ...
-# On supprime les offsets et récupère uniquement les bytes.
+# Remove offsets and keep only bytes.
 HEX_CLEAN=$(echo "$HEX_RAW" | sed -E 's/^[[:space:]]*0x[0-9a-f]+://; s/[ \t]+/ /g' | \
             awk '{for(i=1;i<=NF;i++) printf "%s", $i} END{print ""}')
 
 ###############################################
-# 3) Extraire uniquement le payload UDP
+# 3) Extract only the UDP payload
 ###############################################
-# Nous devons ignorer :
-#  - entête Ethernet : 14 octets
-#  - entête IP       : IPv4 (IHL) ou IPv6 (40 octets fixes)
-#  - entête UDP      : 8 octets
+# We must skip:
+#  - Ethernet header: 14 bytes
+#  - IP header      : IPv4 (IHL) or IPv6 (fixed 40 bytes)
+#  - UDP header     : 8 bytes
 
 BIN_TEMP=$(mktemp)
 echo "$HEX_CLEAN" | xxd -r -p > "$BIN_TEMP"
@@ -68,7 +70,7 @@ echo "$HEX_CLEAN" | xxd -r -p > "$BIN_TEMP"
 ETH_HEADER_LEN=14
 UDP_HEADER_LEN=8
 
-# EtherType = bytes 12-13 après Ethernet pour distinguer IPv4/IPv6
+# EtherType = bytes 12-13 after Ethernet to distinguish IPv4/IPv6
 ETH_TYPE_HEX=$(xxd -p -l 2 -s 12 "$BIN_TEMP")
 
 case "$ETH_TYPE_HEX" in
@@ -81,35 +83,34 @@ case "$ETH_TYPE_HEX" in
         IP_HEADER_LEN=40
         ;;
     *)
-        echo "Type Ethernet non supporté (0x$ETH_TYPE_HEX)"
+        echo "Unsupported EtherType (0x$ETH_TYPE_HEX)"
         exit 3
         ;;
 esac
 
 PAYLOAD_OFFSET=$(( ETH_HEADER_LEN + IP_HEADER_LEN + UDP_HEADER_LEN ))
 
-# Extraire uniquement le payload UDP en hex
+# Extract only the UDP payload in hex
 PAYLOAD_HEX=$(xxd -p -s $PAYLOAD_OFFSET "$BIN_TEMP" | tr -d '\n')
 
 if [ -z "$PAYLOAD_HEX" ]; then
-    echo "Payload UDP vide ou non détecté"
+    echo "UDP payload empty or not detected"
     exit 4
 fi
 
-# Version base64 pour plus de confort
+# Generate the Base64 version for JSON writing
 PAYLOAD_BASE64=$(echo "$PAYLOAD_HEX" | xxd -r -p | base64 -w0)
 
-#rm "$BIN_TEMP"
+rm "$BIN_TEMP"
 
 ###############################################
-# 4) Générer le fichier JSON
+# 4) Generate the JSON file
 ###############################################
 {
     echo "{"
     echo "  \"udp_dst_port\": 7788,"
-    #echo "  \"payload_hex\": \"${PAYLOAD_HEX}\","
     echo "  \"payload_base64\": \"${PAYLOAD_BASE64}\""
     echo "}"
 } > "$OUT"
 
-echo "Payload UDP extrait et écrit dans $OUT"
+echo "Done. Calibration payload extracted and written to file $OUT"
