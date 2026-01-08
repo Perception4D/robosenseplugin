@@ -5,6 +5,7 @@ LIBRARY_NAME
 DEPENDS
   LidarView::IOLidar
   VTK::CommonCore
+  VTK::IOCore
 PRIVATE_DEPENDS
   RobosensePlugin::RobosenseSDK
   VTK::CommonDataModel
